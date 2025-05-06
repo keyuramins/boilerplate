@@ -1,24 +1,25 @@
+import "server-only";
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { type CookieOptions } from '@supabase/ssr';
 import { Database } from '@/types/supabase';
 
-export function createServerSupabaseClient() {
-  const cookieStore = cookies();
+export async function createServerSupabaseClient(isAdmin = false) {	
+  const cookieStore = await cookies();
 
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    isAdmin ? process.env.SUPABASE_SERVICE_ROLE_KEY! : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          cookieStore.set({ name, value, ...options });
-        },
-        remove(name: string, options: CookieOptions) {
-          cookieStore.set({ name, value: '', ...options });
+        getAll: () => cookieStore.getAll(),
+        setAll: (cookiesToSet) => {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // Ignore if called from a Server Component
+          }
         },
       },
     }
@@ -26,7 +27,7 @@ export function createServerSupabaseClient() {
 }
 
 export async function getSession() {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   try {
     const {
       data: { session },
@@ -39,7 +40,7 @@ export async function getSession() {
 }
 
 export async function getUserDetails() {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   try {
     const { data: userDetails } = await supabase.auth.getUser();
     return userDetails.user;

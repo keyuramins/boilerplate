@@ -1,16 +1,19 @@
+"use server"
+
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { PublicNavbar } from "@/components/public/public-navbar";
-import { PublicFooter } from "@/components/public/public-footer";
 import { projectConfig } from "@/config/project.config";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
+import {Plans} from "@/components/public/billing";
+import { getProducts } from "@/lib/stripe/client";
 
-export default function Home() {
+export default async function Home() {
+  const products = await getProducts();			
   return (
-      <main className="flex-grow">
+      <main className="flex-grow w-full">
         {/* Hero Section */}
         <section className="py-20 md:py-28 bg-gradient-to-b from-background via-background to-secondary/20">
-          <div className="container px-4 md:px-6">
+          <div className="container px-4 md:px-6 w-full">
             <div className="flex flex-col items-center text-center space-y-6 md:space-y-8">
               <div className="space-y-2">
                 <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tighter">
@@ -95,6 +98,8 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+	<Plans products={products}/>
 
         {/* CTA Section */}
         <section className="py-16 md:py-24 bg-gradient-to-b from-background via-secondary to-background text-primary">
