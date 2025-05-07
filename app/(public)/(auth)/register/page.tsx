@@ -10,7 +10,7 @@ export const metadata = {
 
 export default function RegisterPage() {
   return (
-    <main className="flex-grow flex items-center justify-center py-12 bg-muted/30">
+    <main className="flex-grow flex items-center min-h-screen justify-center py-16 bg-muted/30">
       <div className="container max-w-md px-4 md:px-6">
         <div className="space-y-6">
           <div className="space-y-2 text-center">

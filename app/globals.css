@@ -28,33 +28,67 @@
   }
 }
 
+html,
+body,
+* {
+  scroll-behavior: smooth;
+}
+
 /* Animation keyframes */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 @keyframes gradientFlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 /* Background Variants */
@@ -63,7 +97,10 @@
 .bg-grid-dots {
   @apply relative;
   background-color: hsl(var(--background));
-  background-image: radial-gradient(hsl(var(--primary)/0.1) 1px, transparent 1px);
+  background-image: radial-gradient(
+    hsl(var(--primary) / 0.1) 1px,
+    transparent 1px
+  );
   background-size: 24px 24px;
 }
 
@@ -71,9 +108,12 @@
 .bg-grid-matrix {
   @apply relative;
   background-color: hsl(var(--background));
-  background-image: 
-    linear-gradient(to right, hsl(var(--primary)/0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, hsl(var(--primary)/0.05) 1px, transparent 1px);
+  background-image: linear-gradient(
+      to right,
+      hsl(var(--primary) / 0.05) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, hsl(var(--primary) / 0.05) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
@@ -82,14 +122,15 @@
   @apply relative;
   background-color: hsl(var(--background));
   background-image: radial-gradient(
-    circle at center,
-    hsl(var(--primary)/0.15) 0%,
-    transparent 40%
-  ), radial-gradient(
-    circle at 30% 70%,
-    hsl(var(--secondary)/0.15) 0%,
-    transparent 50%
-  );
+      circle at center,
+      hsl(var(--primary) / 0.15) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 30% 70%,
+      hsl(var(--secondary) / 0.15) 0%,
+      transparent 50%
+    );
 }
 
 .bg-grid-bubbles::before {
@@ -97,7 +138,7 @@
   @apply absolute inset-0;
   background-image: radial-gradient(
     circle at 70% 30%,
-    hsl(var(--accent)/0.1) 0%,
+    hsl(var(--accent) / 0.1) 0%,
     transparent 40%
   );
   pointer-events: none;
@@ -106,7 +147,7 @@
 /* Neon Background */
 .bg-neon {
   @apply relative overflow-hidden;
-  background-color: hsl(var(--background)/0.95);
+  background-color: hsl(var(--background) / 0.95);
 }
 
 .bg-neon::before {
@@ -116,11 +157,11 @@
   height: 200%;
   background: conic-gradient(
     from 0deg at 50% 50%,
-    hsl(var(--primary)/0) 0%,
-    hsl(var(--primary)/0.2) 25%,
-    hsl(var(--secondary)/0.2) 50%,
-    hsl(var(--accent)/0.2) 75%,
-    hsl(var(--primary)/0) 100%
+    hsl(var(--primary) / 0) 0%,
+    hsl(var(--primary) / 0.2) 25%,
+    hsl(var(--secondary) / 0.2) 50%,
+    hsl(var(--accent) / 0.2) 75%,
+    hsl(var(--primary) / 0) 100%
   );
   animation: gradientFlow 20s linear infinite;
   filter: blur(60px);
@@ -133,9 +174,9 @@
   @apply relative;
   background: linear-gradient(
     -45deg,
-    hsl(var(--primary)/0.1),
-    hsl(var(--secondary)/0.1),
-    hsl(var(--accent)/0.1),
+    hsl(var(--primary) / 0.1),
+    hsl(var(--secondary) / 0.1),
+    hsl(var(--accent) / 0.1),
     hsl(var(--background))
   );
   background-size: 400% 400%;
@@ -176,8 +217,8 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .bg-grid-dots, .bg-grid-matrix {
+  .bg-grid-dots,
+  .bg-grid-matrix {
     background-size: 16px 16px;
   }
 }
-

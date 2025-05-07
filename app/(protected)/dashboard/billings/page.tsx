@@ -1,7 +1,9 @@
+import { PricingSection } from "@/components/landing/pricing-section"
+
 export default function DashboardBilling(){
   return(
     <div>
-	Billing Page
+	<PricingSection isComponent={true}  />
     </div>
   )
 }

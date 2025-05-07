@@ -38,6 +38,7 @@ export const projectConfig = {
     ],
     dashboard: [
       { name: "Dashboard", href: "/dashboard", icon: "layoutDashboard" },
+      { name: "Billings", href: "/dashboard/billings", icon: "dollarSign" },
       { name: "Settings", href: "/dashboard/settings", icon: "settings" },
     ],
   },

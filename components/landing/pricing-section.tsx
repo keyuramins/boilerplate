@@ -8,6 +8,8 @@ import { createClientSupabaseClient } from "@/lib/supabase/client";
 import { StripeProduct, UserPlan } from "@/lib/stripe/types";
 import { cn } from "@/lib/utils"; // Assuming you have a cn utility for classNames
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from 'nextjs-toploader/app';
+
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -15,10 +17,12 @@ const stripePromise = loadStripe(
 
 interface PricingSectionProps {
   productList?: StripeProduct[];
+  isComponent?: Boolean;
 }
 
 export const PricingSection: React.FC<PricingSectionProps> = ({
   productList = [],
+  isComponent = false,
 }) => {
   const config = landingConfig.sections.pricing;
   const variant = config.variant || landingConfig.globalVariant;
@@ -29,6 +33,8 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [loading, setLoading] = useState(!productList.length); // Only load if no productList
 
+  const router = useRouter()
+  
   useEffect(() => {
     async function fetchData() {
       if (productList.length) return; // Skip fetch if productList is provided
@@ -39,7 +45,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
         if (res?.products) setProducts(res?.products);
 
         // Fetch user plan from Supabase
-        const supabase = await createClientSupabaseClient();
+        const supabase = createClientSupabaseClient();
         const {
           data: { user },
         } = await supabase.auth.getUser();
@@ -80,6 +86,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
           description: error || "Failed to create checkout session",
           variant: "destructive",
         });
+	router.push("/login?next=/dashboard/billings");
         return;
       }
       const { sessionId } = await res.json();
@@ -208,37 +215,44 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
 
   return (
     <section
-      className={`pricing-section py-12 md:py-20 lg:py-24 relative overflow-hidden
+      className={`pricing-section ${
+        !isComponent && "py-12 md:py-20 lg:py-24"
+      } relative overflow-hidden
                  ${
-                   variant === "default"
+                   !isComponent && variant === "default"
                      ? "bg-background"
-                     : variant === "grid-dots"
+                     : !isComponent && variant === "grid-dots"
                      ? "bg-grid-dots"
-                     : variant === "grid-matrix"
-                     ? "bg-grid-matrix"
-                     : variant === "grid-bubbles"
+                     : !isComponent && variant === "grid-matrix"
+                     ? !isComponent && "bg-grid-matrix"
+                     : !isComponent && variant === "grid-bubbles"
                      ? "bg-grid-bubbles"
-                     : variant === "neon"
+                     : !isComponent && variant === "neon"
                      ? "bg-neon"
-                     : variant === "gradient"
+                     : !isComponent && variant === "gradient"
                      ? "bg-gradient-animated"
-                     : variant === "waves"
+                     : !isComponent && variant === "waves"
                      ? "bg-waves"
                      : ""
                  }`}
     >
       <div className="container px-4 sm:px-6 mx-auto relative z-10">
         <div
-          className={`flex flex-col ${alignmentClass} mb-8 md:mb-12 lg:mb-16`}
+          className={`flex flex-col ${
+            !isComponent && alignmentClass
+          } mb-8 md:mb-12 lg:mb-16`}
         >
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-4">
             Pricing Plans
           </h2>
-          <p className="text-muted-foreground text-sm sm:text-base mt-2 max-w-[42rem] mx-auto">
+          <p
+            className={`text-muted-foreground text-sm sm:text-base 
+	    ${(!isComponent && "mx-auto mt-2") || "mt-1"} max-w-[42rem]`}
+          >
             Choose the perfect plan for your needs
           </p>
 
-          {config.showToggle && (
+          {!isComponent && config.showToggle && (
             <div className="flex items-center justify-center mt-6 sm:mt-8 space-x-2">
               <span
                 className={cn(
