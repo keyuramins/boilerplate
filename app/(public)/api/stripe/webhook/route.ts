@@ -51,11 +51,11 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Webhook signature verification failed:", {
-      message: error.message,
+      message: "Failed to construct Stripe event",
       signature,
     });
     return new NextResponse(
-      `Webhook signature verification failed: ${error.message}`,
+      `Webhook signature verification failed: Failed to construct Stripe event`,
       {
         status: 400,
       }
@@ -208,10 +208,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Webhook processing error:", {
       eventType: event.type,
-      message: error.message,
-      stack: error.stack,
+      message: "Failed to process Stripe event",
     });
-    return new NextResponse(`Webhook processing error: ${error.message}`, {
+    return new NextResponse(`Webhook processing error: Failed to process Stripe event`, {
       status: 500,
     });
   }
