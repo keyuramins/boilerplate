@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 /* Theme Descriptions:
  * - corporate.css: A professional, business-oriented theme with deep blues and crisp whites, ideal for corporate environments.
  * - cosmic.css: A space-inspired theme with deep purples and bright accents, evoking a futuristic, starry aesthetic.
@@ -28,3 +27,157 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+/* Background Variants */
+
+/* Grid Dots Background */
+.bg-grid-dots {
+  @apply relative;
+  background-color: hsl(var(--background));
+  background-image: radial-gradient(hsl(var(--primary)/0.1) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Grid Matrix Background */
+.bg-grid-matrix {
+  @apply relative;
+  background-color: hsl(var(--background));
+  background-image: 
+    linear-gradient(to right, hsl(var(--primary)/0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(var(--primary)/0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Grid Bubbles Background */
+.bg-grid-bubbles {
+  @apply relative;
+  background-color: hsl(var(--background));
+  background-image: radial-gradient(
+    circle at center,
+    hsl(var(--primary)/0.15) 0%,
+    transparent 40%
+  ), radial-gradient(
+    circle at 30% 70%,
+    hsl(var(--secondary)/0.15) 0%,
+    transparent 50%
+  );
+}
+
+.bg-grid-bubbles::before {
+  content: "";
+  @apply absolute inset-0;
+  background-image: radial-gradient(
+    circle at 70% 30%,
+    hsl(var(--accent)/0.1) 0%,
+    transparent 40%
+  );
+  pointer-events: none;
+}
+
+/* Neon Background */
+.bg-neon {
+  @apply relative overflow-hidden;
+  background-color: hsl(var(--background)/0.95);
+}
+
+.bg-neon::before {
+  content: "";
+  @apply absolute -inset-1/2;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    hsl(var(--primary)/0) 0%,
+    hsl(var(--primary)/0.2) 25%,
+    hsl(var(--secondary)/0.2) 50%,
+    hsl(var(--accent)/0.2) 75%,
+    hsl(var(--primary)/0) 100%
+  );
+  animation: gradientFlow 20s linear infinite;
+  filter: blur(60px);
+  opacity: 0.5;
+  z-index: 0;
+}
+
+/* Animated Gradient Background */
+.bg-gradient-animated {
+  @apply relative;
+  background: linear-gradient(
+    -45deg,
+    hsl(var(--primary)/0.1),
+    hsl(var(--secondary)/0.1),
+    hsl(var(--accent)/0.1),
+    hsl(var(--background))
+  );
+  background-size: 400% 400%;
+  animation: gradientFlow 15s ease infinite;
+}
+
+/* Waves Background */
+.bg-waves {
+  @apply relative;
+  background-color: hsl(var(--background));
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='198'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='50%25' x2='50%25' y1='-10.959%25' y2='100%25'%3E%3Cstop stop-color='%23ffffff' stop-opacity='.1' offset='0%25'/%3E%3Cstop stop-color='%23FFFFFF' stop-opacity='.05' offset='100%25'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23a)' fill-rule='evenodd' d='M.005 121C311 121 409.898-.25 811 0c400 0 500 121 789 121v77H0s.005-48 .005-77z' transform='matrix(-1 0 0 1 1600 0)'/%3E%3C/svg%3E");
+  background-position: top;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* Component Animations */
+.animate-stat {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-stat:hover {
+  animation: pulse 2s infinite;
+}
+
+.landing-page {
+  animation: fadeIn 0.8s ease-out;
+}
+
+.hero-section {
+  animation: slideUp 0.8s ease-out;
+}
+
+/* Image float animation */
+.float-animation {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .bg-grid-dots, .bg-grid-matrix {
+    background-size: 16px 16px;
+  }
+}
+

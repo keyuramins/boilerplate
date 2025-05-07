@@ -3,46 +3,72 @@ import { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { createClientSupabaseClient } from "@/lib/supabase/client";
 import { StripeProduct, UserPlan } from "@/lib/stripe/types";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+);
 
-export function Plans({products=[]}: {products: StripeProduct[]}) {
+export function Plans({
+  label = "Choose your plan",
+  productList = undefined,
+}: {
+  label?: string;
+  productList?: StripeProduct[];
+}) {
+  const [products, setProducts] = useState<StripeProduct[]>(productList || []);
+  const [loading, setLoading] = useState(true);
   const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
   const [submitting, setSubmitting] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
       try {
+        if (!productList) {
+          const fetchProducts = await fetch("/api/stripe/plans");
+          const res = await fetchProducts.json();
+          if (res?.products) setProducts(res?.products);
+        }
         // Fetch user plan from Supabase
         const supabase = createClientSupabaseClient();
-        const { data: { user } } = await supabase.auth.getUser();
-	//console.log(user)
-	if(!user) return;
-	if(user) {
-	  setUserPlan({
-	      planId: "",
-	      priceId: "",
-	      status: "",
-	      currentPeriodEnd: 0
-	  })
-	}
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        //console.log(user)
+        if (!user) return;
+        if (user) {
+          setUserPlan({
+            planId: "",
+            priceId: "",
+            status: "",
+            currentPeriodEnd: 0,
+          });
+        }
         if (user && user?.user_metadata?.plan) {
           setUserPlan(user.user_metadata.plan);
         }
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     }
 
     fetchData();
-  }, []);
+  }, [productList]);
 
   const handleSubscribe = async (priceId: string) => {
     setSubmitting(priceId);
-    console.log({priceId});	
-    
+    console.log({ priceId });
+
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
@@ -66,9 +92,16 @@ export function Plans({products=[]}: {products: StripeProduct[]}) {
     }
   };
 
+  if (loading)
+    return (
+      <div className="flex items-center justify-center w-full min-h-[300px]">
+        <Loader2 className="w-10 h-10 mx-auto animate-spin" />
+      </div>
+    );
+
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-8 text-center">Choose Your Plan</h1>
+      <h1 className="text-3xl font-bold mb-8 text-center">{label}</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {products.map((product) => (
           <Card key={product.id} className="flex flex-col">
@@ -89,31 +122,36 @@ export function Plans({products=[]}: {products: StripeProduct[]}) {
                   <li key={price.id} className="flex justify-between">
                     <span>
                       {price.unit_amount
-                        ? `$${(price.unit_amount / 100).toFixed(2)} / ${price.interval}`
+                        ? `$${(price.unit_amount / 100).toFixed(2)} / ${
+                            price.interval
+                          }`
                         : "Free"}
                     </span>
-                    {userPlan?.priceId === price.id && userPlan.status === "active" ? (
-                      <span className="text-green-600 font-semibold">Current Plan</span>
+                    {userPlan?.priceId === price.id &&
+                    userPlan.status === "active" ? (
+                      <span className="text-green-600 font-semibold">
+                        Current Plan
+                      </span>
                     ) : (
-		    <>
-		    {
-		      userPlan && (
-			<Button
-			  onClick={() => handleSubscribe(price.id)}
-			  disabled={submitting === price.id}
-			  variant={userPlan?.priceId === price.id ? "outline" : "default"}
-			>
-			  {submitting === price.id ? (
-			    "Loading..."
-			  ) : userPlan?.priceId === price.id ? (
-			    "Manage"
-			  ) : (
-			    "Subscribe"
-			  )}
-			</Button>
-		      )
-		    }
-		    </>
+                      <>
+                        {userPlan && (
+                          <Button
+                            onClick={() => handleSubscribe(price.id)}
+                            disabled={submitting === price.id}
+                            variant={
+                              userPlan?.priceId === price.id
+                                ? "outline"
+                                : "default"
+                            }
+                          >
+                            {submitting === price.id
+                              ? "Loading..."
+                              : userPlan?.priceId === price.id
+                              ? "Manage"
+                              : "Subscribe"}
+                          </Button>
+                        )}
+                      </>
                     )}
                   </li>
                 ))}
