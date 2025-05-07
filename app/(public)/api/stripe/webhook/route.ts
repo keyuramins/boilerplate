@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
   try {
     rawBody = await getRawBody(request);
   } catch (error) {
-    console.error("Raw body error:", error?.message);
+    console.error("Raw body error:", error);
     return new NextResponse("Failed to read request body", { status: 400 });
   }
 
