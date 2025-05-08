@@ -1,0 +1,35 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Project Structure Guide
+
+This is a Next.js 15+ application using the App Router pattern with Supabase authentication and Stripe payments integration.
+
+## Core Files
+- [middleware.ts](mdc:middleware.ts) - Handles authentication and routing middleware
+- [next.config.js](mdc:next.config.js) - Next.js configuration
+- [tailwind.config.ts](mdc:tailwind.config.ts) - Tailwind CSS configuration
+- [components.json](mdc:components.json) - shadcn/ui components configuration
+
+## App Directory Structure
+The app directory uses Next.js 13+ App Router with route groups:
+
+- [app/layout.tsx](mdc:app/layout.tsx) - Root layout with providers
+- [app/(public)](mdc:app/(public)) - Public routes (marketing, auth)
+- [app/(protected)](mdc:app/(protected)) - Protected routes requiring authentication
+- [app/globals.css](mdc:app/globals.css) - Global styles and Tailwind directives
+
+## Core Integrations
+
+### Supabase Integration
+Authentication and database integration files:
+- [lib/supabase/client.ts](mdc:lib/supabase/client.ts) - Browser client
+- [lib/supabase/server.ts](mdc:lib/supabase/server.ts) - Server-side utilities
+
+### Stripe Integration
+Payment processing integration:
+- [lib/stripe/client.ts](mdc:lib/stripe/client.ts) - Stripe client setup
+- [lib/stripe/config.ts](mdc:lib/stripe/config.ts) - Stripe configuration
+- [lib/stripe/types.ts](mdc:lib/stripe/types.ts) - Stripe type definitions

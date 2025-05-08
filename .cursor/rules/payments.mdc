@@ -1,0 +1,23 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Payments Guide
+
+The application uses Stripe for payment processing and subscription management.
+
+## Core Payment Files
+- [lib/stripe/client.ts](mdc:lib/stripe/client.ts) - Stripe client configuration
+- [lib/stripe/config.ts](mdc:lib/stripe/config.ts) - Stripe settings and products
+- [lib/stripe/types.ts](mdc:lib/stripe/types.ts) - Stripe-related type definitions
+
+## Payment Routes
+Payment-related routes and API endpoints:
+- [app/(protected)/dashboard/billings](mdc:app/(protected)/dashboard/billings) - Billing management
+- [app/(public)/api/webhooks/stripe](mdc:app/(public)/api/webhooks/stripe) - Stripe webhook handler
+
+## Payment Components
+Components for handling payments and subscriptions:
+- [components/dashboard/billing](mdc:components/dashboard/billing) - Billing UI components
+- [components/ui/card.tsx](mdc:components/ui/card.tsx) - Payment card components

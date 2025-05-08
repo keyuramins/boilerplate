@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "@/components/ui/toaster";
 import { projectConfig } from "@/config/project.config";
+import ErrorBoundary from "@/components/error-boundary";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,7 +24,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${inter.className} overflow-y-auto overscroll-none`}>
         <ThemeProvider
           attribute="class"
           defaultTheme={projectConfig.themeSettings.default}
@@ -35,7 +36,9 @@ export default function RootLayout({
             color="hsl(var(--ring))"
             zIndex={9999}
           />
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
           <Toaster />
         </ThemeProvider>
       </body>

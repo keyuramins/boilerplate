@@ -1,0 +1,139 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Configuration Guide
+
+The application uses a multi-layered configuration system that handles theming, project settings, and feature configurations.
+
+## Core Configuration Files
+
+### Project Configuration
+[config/project.config.ts](mdc:config/project.config.ts) defines core application settings:
+- Site metadata
+- Feature flags
+- API endpoints
+- Authentication settings
+- Route definitions
+- Default locale settings
+- SEO configurations
+
+### Landing Page Configuration
+[config/landing.config.ts](mdc:config/landing.config.ts) manages marketing content:
+- Hero section content
+- Feature descriptions
+- Pricing plans
+- Testimonials
+- FAQ sections
+- Call-to-action buttons
+- Contact information
+
+## Theme System
+
+### Theme Configuration Files
+The [config/themes](mdc:config/themes) directory contains predefined theme variations:
+
+Base Themes:
+- [config/themes/default.css](mdc:config/themes/default.css) - Default theme
+- [config/themes/minimal.css](mdc:config/themes/minimal.css) - Clean, minimal design
+- [config/themes/corporate.css](mdc:config/themes/corporate.css) - Professional business theme
+
+Color Schemes:
+- [config/themes/ocean.css](mdc:config/themes/ocean.css) - Blue-based palette
+- [config/themes/sunset.css](mdc:config/themes/sunset.css) - Warm color scheme
+- [config/themes/vibrant.css](mdc:config/themes/vibrant.css) - High-energy colors
+- [config/themes/earthy.css](mdc:config/themes/earthy.css) - Natural tones
+
+Special Themes:
+- [config/themes/high_contrast.css](mdc:config/themes/high_contrast.css) - Accessibility-focused
+- [config/themes/monochrome.css](mdc:config/themes/monochrome.css) - Black and white
+- [config/themes/nordic.css](mdc:config/themes/nordic.css) - Scandinavian design
+- [config/themes/cosmic.css](mdc:config/themes/cosmic.css) - Space-inspired theme
+- [config/themes/retro.css](mdc:config/themes/retro.css) - Vintage aesthetics
+
+## UI Component Configuration
+
+### Tailwind Configuration
+[tailwind.config.ts](mdc:tailwind.config.ts) defines:
+- Custom color palettes
+- Typography scales
+- Spacing system
+- Breakpoints
+- Animation settings
+- Plugin configurations
+
+### Component Settings
+[components.json](mdc:components.json) configures shadcn/ui:
+- Component style preferences
+- Default variants
+- Animation preferences
+- Color scheme mappings
+- Component class names
+
+## Integration Configurations
+
+### Supabase Configuration
+Environment-based configuration for Supabase:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+```
+
+### Stripe Configuration
+Payment processing configuration:
+```env
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_publishable_key
+STRIPE_SECRET_KEY=your_secret_key
+STRIPE_WEBHOOK_SECRET=your_webhook_secret
+```
+
+## Usage Examples
+
+### Theme Implementation
+Themes are imported in [app/globals.css](mdc:app/globals.css) and managed through next-themes:
+
+```typescript
+// app/globals.css
+@import "../config/themes/default.css";
+
+// app/layout.tsx
+import { ThemeProvider } from 'next-themes'
+
+<ThemeProvider
+  attribute="class"
+  defaultTheme="system"
+  enableSystem
+  disableTransitionOnChange
+>
+  {children}
+</ThemeProvider>
+
+// Using theme in components
+const { theme, setTheme } = useTheme()
+```
+
+### Project Config Usage
+```typescript
+// Accessing project configuration
+import { siteConfig } from '@/config/project.config'
+
+const { title, description } = siteConfig
+```
+
+## Configuration Best Practices
+
+1. Environment Variables:
+   - Use `.env.local` for local development
+   - Set production variables in hosting platform
+   - Never commit sensitive values
+
+2. Theme Customization:
+   - Extend existing themes rather than creating new ones
+   - Use CSS variables for dynamic values
+   - Follow the established naming convention
+
+3. Configuration Updates:
+   - Keep configurations type-safe
+   - Document all configuration options
+   - Use constants for repeated values

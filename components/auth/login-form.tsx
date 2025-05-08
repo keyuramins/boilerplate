@@ -102,7 +102,7 @@ export function LoginForm() {
         description: 'It seems like you forgot your password. Please reset your password.',
         variant: 'destructive',
       });
-      router.push('/forgot_password');
+      router.push('/forgot-password');
       return;
     }
 
