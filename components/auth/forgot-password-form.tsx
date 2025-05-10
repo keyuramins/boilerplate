@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'nextjs-toploader/app';
 import { createClientSupabaseClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,19 +46,20 @@ export function ForgotPasswordForm() {
         return;
       }
 
+      // Send password reset email with PKCE flow
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
       });
 
       if (error) {
         throw error;
       }
 
+      // Always show success message even if email doesn't exist
+      // This prevents user enumeration
       setIsSubmitted(true);
-      toast({
-        title: 'Check your email',
-        description: 'We have sent you a password reset link. It may take a few minutes to arrive.',
-      });
+      router.push('/forgot-password?success=email-sent');
+      
     } catch (error: any) {
       toast({
         title: 'Failed to send reset email',
@@ -151,4 +152,4 @@ export function ForgotPasswordForm() {
       </div>
     </div>
   );
-} 
+}

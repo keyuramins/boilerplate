@@ -9,43 +9,34 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: {
+    code?: string;
+    next?: string;
+  };
 }
 
 export default async function ResetPasswordPage({
   searchParams,
 }: PageProps) {
-  // Get the token from the URL - Supabase sends it as a hash fragment
-  const token = searchParams?.token?.toString();
+  // Get the token from the URL query parameters
+  const params = await searchParams;
+  const token = params?.code;
+  const next = params?.next || '/dashboard';
   
   if (!token) {
     redirect('/forgot-password?error=missing-token');
   }
 
-  // Initialize Supabase client
-  const supabase = await createServerSupabaseClient();
-
-  try {
-    // Set the recovery token in the session
-    const { error } = await supabase.auth.verifyOtp({
-      token_hash: token,
-      type: 'recovery'
-    });
-
-    if (error) {
-      redirect('/forgot-password?error=invalid-token');
-    }
-  } catch (error) {
-    redirect('/forgot-password?error=invalid-token');
-  }
-
+  // The token will be automatically handled by Supabase client
+  // when the user clicks the reset link in their email
+  // The PKCE flow will be handled by the auth callback route
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center">
       <div className="relative z-10 mx-auto w-full max-w-[350px] space-y-6">
         <div className="rounded-lg border bg-card p-8 shadow-sm">
-          <ResetPasswordForm code={token} />
+          <ResetPasswordForm next={next} />
         </div>
       </div>
     </main>
   );
-} 
+}

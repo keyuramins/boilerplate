@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientSupabaseClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 
@@ -18,33 +18,60 @@ const passwordSchema = z.object({
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
     .regex(/[0-9]/, 'Password must contain at least one number')
     .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
-  confirmPassword: z.string()
+  confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
-  path: ["confirmPassword"],
+  path: ['confirmPassword'],
 });
 
 interface ResetPasswordFormProps {
-  code: string;
+  next?: string;
 }
 
-export function ResetPasswordForm({ code }: ResetPasswordFormProps) {
+export function ResetPasswordForm({ next = '/dashboard' }: ResetPasswordFormProps) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClientSupabaseClient();
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Listen for the PASSWORD_RECOVERY event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        // Get the user's email from the session
+        if (session?.user.email) {
+          setEmail(session.user.email);
+        }
+      }
+    });
+
+    // Check if we're in a password recovery flow
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user.email) {
+        setEmail(session.user.email);
+      }
+    };
+
+    checkSession();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase.auth]);
 
   const validatePassword = () => {
     try {
       passwordSchema.parse({ password, confirmPassword });
       setValidationError(null);
       return true;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        setValidationError(error.errors[0].message);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        setValidationError(err.errors[0].message);
       }
       return false;
     }
@@ -52,48 +79,32 @@ export function ResetPasswordForm({ code }: ResetPasswordFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validatePassword()) return;
     setIsLoading(true);
 
     try {
-      // Validate password
-      if (!validatePassword()) {
-        setIsLoading(false);
-        return;
-      }
-
-      // Update the password using the recovery token
-      const { error } = await supabase.auth.updateUser({
-        password: password,
-      }, {
-        emailRedirectTo: `${window.location.origin}/login`
+      // Update the user's password
+      const { error } = await supabase.auth.updateUser({ 
+        password: password 
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       toast({
         title: 'Password updated successfully',
         description: 'Your password has been reset. Please log in with your new password.',
       });
 
-      // Sign out the user and clear any existing session
+      // Sign out and redirect to login
       await supabase.auth.signOut();
-
-      // Redirect to login with success message
-      router.push('/login?reset=success');
+      router.push(`/login?reset=success&next=${encodeURIComponent(next)}`);
       router.refresh();
-    } catch (error: any) {
+    } catch (err: any) {
       toast({
         title: 'Error resetting password',
-        description: error?.message || 'Failed to reset password. Please try again.',
+        description: err.message || 'Failed to reset password. Please try again.',
         variant: 'destructive',
       });
-      
-      if (error?.message?.toLowerCase().includes('token') || 
-          error?.message?.toLowerCase().includes('expired')) {
-        router.push('/forgot-password?error=expired');
-      }
     } finally {
       setIsLoading(false);
     }
@@ -103,11 +114,12 @@ export function ResetPasswordForm({ code }: ResetPasswordFormProps) {
     <div className="space-y-4">
       <div className="space-y-2 text-center">
         <h2 className="text-2xl font-semibold tracking-tight">Reset Password</h2>
-        <p className="text-sm text-muted-foreground">
-          Enter your new password below.
-        </p>
+        {email && (
+          <p className="text-sm text-muted-foreground">
+            Reset password for {email}
+          </p>
+        )}
       </div>
-      
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="password">New Password</Label>
@@ -167,4 +179,4 @@ export function ResetPasswordForm({ code }: ResetPasswordFormProps) {
       </form>
     </div>
   );
-} 
+}

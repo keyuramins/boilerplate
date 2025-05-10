@@ -1,11 +1,22 @@
-import * as Lucide from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { Circle } from 'lucide-react';
 
+function toKebabCase(name) {
+  return name
+    .replace(/_/g, '-') // Replace underscores with hyphens
+    .replace(/([a-z])([A-Z])/g, '$1-$2') // Insert hyphen between lowercase and uppercase letters
+    .toLowerCase(); // Convert to lowercase
+}
 
-// Function to dynamically resolve lucide-react icon component from string
-export const getIconComponent = (iconName: string) => {
-  // Ensure the iconName is capitalized (lucide-react uses PascalCase)
-  const capitalizedIconName = iconName.charAt(0).toUpperCase() + iconName.slice(1);
-  // Checkresielect the icon component or fallback to Circle
-  const IconComponent = (Lucide[capitalizedIconName as keyof typeof Lucide] || Lucide.Circle) as React.ComponentType<{ className?: string }>;
-  return IconComponent;
+export const getIconComponent = (iconName) => {
+  const kebabCaseName = toKebabCase(iconName);
+  return dynamic(
+    () =>
+      import(`lucide-react/dist/esm/icons/${kebabCaseName}.js`)
+        .then((mod) => mod.default)
+        .catch(() => Circle), // Fallback to Circle if the icon doesn’t exist
+    {
+      loading: () => <Circle className="animate-spin opacity-60" />, // Show Circle while loading
+    }
+  );
 };

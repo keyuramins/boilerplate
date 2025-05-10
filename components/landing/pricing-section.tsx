@@ -9,11 +9,37 @@ import { StripeProduct, UserPlan } from "@/lib/stripe/types";
 import { cn } from "@/lib/utils"; // Assuming you have a cn utility for classNames
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'nextjs-toploader/app';
+import { cache } from 'react';
+import { getApi, postApi } from '@/lib/fetch';
 
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
+
+// Cache the fetch products function
+const fetchProducts = cache(async () => {
+  const { data, error } = await getApi<{ products: StripeProduct[] }>("/api/stripe/plans");
+  if (error) {
+    throw new Error(error);
+  }
+  return data?.products || [];
+});
+
+// Cache the fetch user plan function
+const fetchUserPlan = cache(async () => {
+  const supabase = createClientSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) return null;
+  
+  return user?.user_metadata?.plan || {
+    planId: "",
+    priceId: "",
+    status: "",
+    currentPeriodEnd: 0,
+  };
+});
 
 interface PricingSectionProps {
   productList?: StripeProduct[];
@@ -36,67 +62,59 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
   const router = useRouter()
   
   useEffect(() => {
-    async function fetchData() {
-      if (productList.length) return; // Skip fetch if productList is provided
+    async function loadData() {
+      if (productList.length) return;
 
       try {
-        const fetchProducts = await fetch("/api/stripe/plans");
-        const res = await fetchProducts.json();
-        if (res?.products) setProducts(res?.products);
+        const [fetchedProducts, fetchedUserPlan] = await Promise.all([
+          fetchProducts(),
+          fetchUserPlan()
+        ]);
 
-        // Fetch user plan from Supabase
-        const supabase = createClientSupabaseClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (user) {
-          setUserPlan({
-            planId: "",
-            priceId: "",
-            status: "",
-            currentPeriodEnd: 0,
-          });
-          if (user?.user_metadata?.plan) {
-            setUserPlan(user.user_metadata.plan);
-          }
-        }
+        setProducts(fetchedProducts);
+        setUserPlan(fetchedUserPlan);
       } catch (error) {
         console.error("Error fetching data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load pricing information. Please try again.",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
     }
 
-    fetchData();
-  }, []);
+    loadData();
+  }, [productList.length, toast]);
 
   const handleSubscribe = async (priceId: string) => {
     setSubmitting(priceId);
     try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
-      });
-      if (!res.ok) {
-        const { error } = await res.json();
+      const { data, error } = await postApi<{ sessionId: string }>("/api/stripe/checkout", { priceId });
+      
+      if (error) {
         toast({
           title: "Error",
           description: error || "Failed to create checkout session",
           variant: "destructive",
         });
-	router.push("/login?next=/dashboard/billings");
+        router.push("/login?next=/dashboard/billings");
         return;
       }
-      const { sessionId } = await res.json();
+
       const stripe = await stripePromise;
       if (!stripe) throw new Error("Stripe failed to initialize");
 
-      const { error } = await stripe.redirectToCheckout({ sessionId });
-      if (error) throw new Error(error.message);
+      const { error: stripeError } = await stripe.redirectToCheckout({ sessionId: data.sessionId });
+      if (stripeError) throw new Error(stripeError.message);
     } catch (error) {
       console.error("Subscription error:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to process subscription",
+        variant: "destructive",
+      });
     } finally {
       setSubmitting(null);
     }

@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* Theme Descriptions:
  * - corporate.css: A professional, business-oriented theme with deep blues and crisp whites, ideal for corporate environments.
  * - cosmic.css: A space-inspired theme with deep purples and bright accents, evoking a futuristic, starry aesthetic.
@@ -16,8 +12,13 @@
  * - sunset.css: A warm theme with oranges, pinks, and purples, capturing the beauty of a sunset.
  * - vibrant.css: A bold, colorful theme with energetic hues, designed for lively and dynamic interfaces.
  */
-
 @import "../config/themes/cosmic.css";
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 
 @layer base {
   * {
@@ -37,19 +38,13 @@
     }
   }
 
-  html {
-    scroll-behavior: var(--scroll-behavior);
-    height: 100%;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
 
-  body {
+   body {
     height: 100%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: none;
-  }
+  } 
 }
 
 @media (prefers-reduced-motion: reduce) {

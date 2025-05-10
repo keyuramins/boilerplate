@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { getApi, postApi } from '@/lib/fetch';
+import { useToast } from "@/hooks/use-toast";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -29,31 +31,33 @@ export function Plans({
   const [loading, setLoading] = useState(true);
   const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
   const [submitting, setSubmitting] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     async function fetchData() {
       try {
         if (!productList) {
-          const fetchProducts = await fetch("/api/stripe/plans");
-          const res = await fetchProducts.json();
-          if (res?.products) setProducts(res?.products);
+          const { data, error } = await getApi<{ products: StripeProduct[] }>("/api/stripe/plans");
+          if (error) throw new Error(error);
+          if (data?.products) setProducts(data.products);
         }
+
         // Fetch user plan from Supabase
         const supabase = createClientSupabaseClient();
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        //console.log(user)
+
         if (!user) return;
-        if (user) {
-          setUserPlan({
-            planId: "",
-            priceId: "",
-            status: "",
-            currentPeriodEnd: 0,
-          });
-        }
-        if (user && user?.user_metadata?.plan) {
+        
+        setUserPlan({
+          planId: "",
+          priceId: "",
+          status: "",
+          currentPeriodEnd: 0,
+        });
+
+        if (user?.user_metadata?.plan) {
           setUserPlan(user.user_metadata.plan);
         }
         setLoading(false);
@@ -70,23 +74,28 @@ export function Plans({
     console.log({ priceId });
 
     try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
-      });
-      if (!res.ok) {
-        const { error } = await res.json();
-        throw new Error(error || "Failed to create checkout session");
+      const { data, error } = await postApi<{ sessionId: string }>("/api/stripe/checkout", { priceId });
+      
+      if (error) {
+        throw new Error(error);
       }
-      const { sessionId } = await res.json();
+
+      if (!data?.sessionId) {
+        throw new Error("No session ID received");
+      }
+
       const stripe = await stripePromise;
       if (!stripe) throw new Error("Stripe failed to initialize");
 
-      const { error } = await stripe.redirectToCheckout({ sessionId });
-      if (error) throw new Error(error.message);
+      const { error: stripeError } = await stripe.redirectToCheckout({ sessionId: data.sessionId });
+      if (stripeError) throw new Error(stripeError.message);
     } catch (error) {
       console.error("Subscription error:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to process subscription",
+        variant: "destructive",
+      });
     } finally {
       setSubmitting(null);
     }

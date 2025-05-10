@@ -9,45 +9,60 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Copy, RefreshCw, LoaderCircle } from 'lucide-react';
+import { getApi, postApi } from '@/lib/fetch';
 
-interface ApiSettingsProps {
-  user: any;
-}
-
-export function ApiSettings({ user }: ApiSettingsProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
+export function ApiSettings() {
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const [apiKey, setApiKey] = useState('fk-7f4cc2ab-bc7d-4f5e-9139-d3e9e92cd15a');
 
-  const handleGenerateKey = async () => {
-    setIsGenerating(true);
-
+  const generateApiKey = async () => {
+    setLoading(true);
     try {
-      // In a real application, you would generate this via Supabase
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setApiKey(`fk-${crypto.randomUUID()}`);
+      const { data, error } = await postApi<{ apiKey: string }>('/api/generate-key');
+      
+      if (error) {
+        throw new Error(error);
+      }
 
+      if (!data?.apiKey) {
+        throw new Error('No API key received');
+      }
+
+      setApiKey(data.apiKey);
       toast({
-        title: 'API key generated',
-        description: 'Your new API key has been generated successfully.',
+        title: 'Success',
+        description: 'API key generated successfully',
       });
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error generating API key:', error);
       toast({
         title: 'Error',
-        description: error?.message || 'Failed to generate API key',
+        description: error instanceof Error ? error.message : 'Failed to generate API key',
         variant: 'destructive',
       });
     } finally {
-      setIsGenerating(false);
+      setLoading(false);
     }
   };
 
-  const handleCopyKey = () => {
-    navigator.clipboard.writeText(apiKey);
-    toast({
-      title: 'Copied',
-      description: 'API key copied to clipboard',
-    });
+  const copyToClipboard = async () => {
+    if (!apiKey) return;
+
+    try {
+      await navigator.clipboard.writeText(apiKey);
+      toast({
+        title: 'Success',
+        description: 'API key copied to clipboard',
+      });
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to copy API key to clipboard',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -73,14 +88,14 @@ export function ApiSettings({ user }: ApiSettingsProps) {
             <div className="flex gap-2">
               <Input
                 id="api-key"
-                value={apiKey}
+                value={apiKey || ''}
                 readOnly
                 className="font-mono flex-1"
               />
               <Button
                 variant="outline"
                 size="icon"
-                onClick={handleCopyKey}
+                onClick={copyToClipboard}
               >
                 <Copy className="h-4 w-4" />
               </Button>
@@ -90,10 +105,10 @@ export function ApiSettings({ user }: ApiSettingsProps) {
         <CardFooter>
           <Button 
             variant="outline" 
-            onClick={handleGenerateKey} 
-            disabled={isGenerating}
+            onClick={generateApiKey} 
+            disabled={loading}
           >
-            {isGenerating ? (
+            {loading ? (
               <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <RefreshCw className="mr-2 h-4 w-4" />

@@ -32,8 +32,24 @@ const profileFormSchema = z.object({
   website: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
 });
 
+const passwordFormSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+  confirmPassword: z.string(),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ['confirmPassword'],
+});
+
 export function AccountSettings({ user }: AccountSettingsProps) {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(user.user_metadata?.picture || null);
   const router = useRouter();
@@ -48,6 +64,15 @@ export function AccountSettings({ user }: AccountSettingsProps) {
       email: user.email || '',
       full_name: user.user_metadata?.full_name || '',
       website: user.user_metadata?.website || '',
+    },
+  });
+
+  const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
+    resolver: zodResolver(passwordFormSchema),
+    defaultValues: {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
     },
   });
 
@@ -96,6 +121,47 @@ export function AccountSettings({ user }: AccountSettingsProps) {
       });
     } finally {
       setIsUpdating(false);
+    }
+  }
+
+  async function onSubmitPassword(values: z.infer<typeof passwordFormSchema>) {
+    setIsUpdatingPassword(true);
+
+    try {
+      // First verify the current password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: values.currentPassword,
+      });
+
+      if (signInError) {
+        throw new Error('Current password is incorrect');
+      }
+
+      // Update the password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: values.newPassword,
+      });
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      toast({
+        title: 'Password updated',
+        description: 'Your password has been updated successfully.',
+      });
+
+      // Reset the form
+      passwordForm.reset();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error?.message || 'Failed to update password',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUpdatingPassword(false);
     }
   }
 
@@ -222,7 +288,7 @@ export function AccountSettings({ user }: AccountSettingsProps) {
             <CardFooter>
               <Button type="submit" disabled={isUpdating}>
                 {isUpdating && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
-                Update profile
+                Update Profile
               </Button>
             </CardFooter>
           </form>
@@ -231,15 +297,87 @@ export function AccountSettings({ user }: AccountSettingsProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Danger Zone</CardTitle>
+          <CardTitle>Change Password</CardTitle>
           <CardDescription>
-            Permanently delete your account and all of your data.
+            Update your password.
+          </CardDescription>
+        </CardHeader>
+        <Form {...passwordForm}>
+          <form onSubmit={passwordForm.handleSubmit(onSubmitPassword)}>
+            <CardContent className="space-y-6">
+              <FormField
+                control={passwordForm.control}
+                name="currentPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Current Password</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="password" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={passwordForm.control}
+                name="newPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>New Password</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="password" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={passwordForm.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm New Password</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="password" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>Password must:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Be at least 8 characters long</li>
+                  <li>Contain at least one uppercase letter</li>
+                  <li>Contain at least one lowercase letter</li>
+                  <li>Contain at least one number</li>
+                  <li>Contain at least one special character</li>
+                </ul>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button type="submit" disabled={isUpdatingPassword}>
+                {isUpdatingPassword && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+                Update Password
+              </Button>
+            </CardFooter>
+          </form>
+        </Form>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Delete Account</CardTitle>
+          <CardDescription>
+            Permanently delete your account and all associated data.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground mb-4">
-            Once you delete your account, there is no going back. Please be certain.
+          <p className="text-sm text-muted-foreground">
+            This action cannot be undone. This will permanently delete your account and remove your data from our servers.
           </p>
+        </CardContent>
+        <CardFooter>
           <Button
             variant="destructive"
             onClick={handleDeleteAccount}
@@ -248,7 +386,7 @@ export function AccountSettings({ user }: AccountSettingsProps) {
             {isDeletingAccount && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
             Delete Account
           </Button>
-        </CardContent>
+        </CardFooter>
       </Card>
     </div>
   );
