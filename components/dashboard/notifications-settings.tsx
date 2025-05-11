@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle } from "lucide-react";
 import { Separator } from '@/components/ui/separator';
+import { createClientSupabaseClient } from '@/lib/supabase/client';
 
 interface NotificationsSettingsProps {
   user: any;
@@ -16,19 +17,44 @@ interface NotificationsSettingsProps {
 export function NotificationsSettings({ user }: NotificationsSettingsProps) {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const supabase = createClientSupabaseClient();
   const [settings, setSettings] = useState({
     emailNotifications: true,
-    marketingEmails: false,
     securityAlerts: true,
     productUpdates: true,
   });
+
+  // Load existing settings from user metadata
+  useEffect(() => {
+    if (user?.user_metadata?.notification_settings) {
+      setSettings(prev => ({
+        ...prev,
+        ...user.user_metadata.notification_settings
+      }));
+    }
+  }, [user]);
 
   const handleSaveSettings = async () => {
     setIsSaving(true);
 
     try {
-      // In a real application, you would save this to Supabase
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Get existing user metadata
+      const { data: { user: currentUser }, error: getUserError } = await supabase.auth.getUser();
+      
+      if (getUserError) throw getUserError;
+
+      // Merge new settings with existing metadata
+      const updatedMetadata = {
+        ...currentUser?.user_metadata,
+        notification_settings: settings
+      };
+
+      // Update user metadata
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: updatedMetadata
+      });
+
+      if (updateError) throw updateError;
 
       toast({
         title: 'Settings updated',
@@ -50,7 +76,7 @@ export function NotificationsSettings({ user }: NotificationsSettingsProps) {
       <CardHeader>
         <CardTitle>Notification Settings</CardTitle>
         <CardDescription>
-          Manage how we contact you.
+          Manage what notifications you receive.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -67,24 +93,6 @@ export function NotificationsSettings({ user }: NotificationsSettingsProps) {
               checked={settings.emailNotifications}
               onCheckedChange={(checked) => 
                 setSettings((prev) => ({ ...prev, emailNotifications: checked }))
-              }
-            />
-          </div>
-          
-          <Separator />
-          
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="marketing-emails">Marketing Emails</Label>
-              <p className="text-sm text-muted-foreground">
-                Receive emails about new features, promotions, and offers.
-              </p>
-            </div>
-            <Switch
-              id="marketing-emails"
-              checked={settings.marketingEmails}
-              onCheckedChange={(checked) => 
-                setSettings((prev) => ({ ...prev, marketingEmails: checked }))
               }
             />
           </div>

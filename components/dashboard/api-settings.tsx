@@ -11,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Copy, RefreshCw, LoaderCircle } from 'lucide-react';
 import { getApi, postApi } from '@/lib/fetch';
 
-export function ApiSettings() {
+export function ApiSettings({user}: {user:any}) {
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();

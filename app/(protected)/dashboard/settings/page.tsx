@@ -1,4 +1,3 @@
-import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { AccountSettings } from '@/components/dashboard/account-settings';
 import { NotificationsSettings } from '@/components/dashboard/notifications-settings';
