@@ -58,7 +58,8 @@ export function ResetPasswordForm({ next = '/dashboard' }: ResetPasswordFormProp
     };
 
     checkSession();
-
+    // Use the router here to remove the code param from the url, not refreshing the page
+    window?.history?.replaceState({}, '', window?.location.pathname);
     return () => {
       subscription.unsubscribe();
     };
