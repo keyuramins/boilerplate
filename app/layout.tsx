@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     template: `%s | ${projectConfig.appTitle}`,
   },
   description: projectConfig.appDescription,
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL),
   authors: [{ name: projectConfig.appTitle }],
   creator: projectConfig.appTitle,
   publisher: projectConfig.appTitle,

@@ -47,7 +47,25 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 STRIPE_SECRET_KEY=your_stripe_secret_key (optional)
 ```
 
-4. Run the development server:
+4. Setup Supabase
+```bash
+    // Init Supabase
+    npx supabase init
+
+    // Login to Supabase CLI
+    npx supabase login
+    
+    // Link your project
+    npx supabase link --project-ref <project-id> // Get your supabase project id fromm supabase dashboard settings.
+    
+    // Creates the API table if they don't exist
+    npx supabase db push
+
+    // Optional, Generate types
+    npx supabase gen types typescript --project-id <project-id> > types/supabase.ts
+``
+
+5. Run the development server:
 ```bash
 npm run dev
 # or
