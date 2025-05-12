@@ -48,7 +48,7 @@ export function ForgotPasswordForm() {
 
       // Send password reset email with PKCE flow
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${window.location.origin}/reset-password`,
       });
 
       if (error) {
