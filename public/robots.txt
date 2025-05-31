@@ -1,12 +1,4 @@
-# Allow all crawlers
 User-agent: *
-Allow: /
+Disallow: /
 
-# Sitemap location
-Sitemap: https://your-domain.com/sitemap.xml
-
-# Disallow admin and API routes
-Disallow: /api/*
-Disallow: /admin/*
-Disallow: /_next/*
-Disallow: /static/* 
+Sitemap: https://passcitizenshiptest.com.au/sitemap.xml 

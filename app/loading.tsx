@@ -1,12 +1,8 @@
-import { Loader2 } from "lucide-react";
-
-export default function SimpleLoader() {
+export default function Loading() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-background">
-      <div className="text-center">
-        <Loader2 className="h-12 w-12 text-primary animate-spin mx-auto mb-4" />
-        <p className="text-muted-foreground font-medium text-lg">Loading...</p>
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-[100vh] w-full text-center">
+      <div className="w-48 h-3 rounded bg-muted animate-pulse mb-6" />
+      <div className="text-lg text-muted-foreground">Loading...</div>
     </div>
   );
-}
+} 
